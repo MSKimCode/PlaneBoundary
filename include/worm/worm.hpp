@@ -25,8 +25,65 @@ enum class Neighborhood : int {
   SE = 4,
   S = 5,
   SW = 6,
-  W = 7
+  W = 7,
+  C = 0
 };
+
+/*
+Neighborhood inv(int dx, int dy) {
+  using Way = Neighborhood;
+  if (dx == -1) {
+    if (dy == -1)
+      return Way::NW;
+    if (dy == 0)
+      return Way::W;
+    if (dy == 1)
+      return Way::SW;
+  }
+  if (dx == 0) {
+    if (dy == -1)
+      return Way::N;
+    if (dy == 1)
+      return Way::S;
+  }
+  if (dx == 1) {
+    if (dy == -1)
+      return Way::NE;
+    if (dy == 0)
+      return Way::E;
+    if (dy == 1)
+      return Way::SE;
+  }
+  return Way::C;
+}
+*/
+
+Neighborhood inv(int dx, int dy) {
+  using Way = Neighborhood;
+  if (dx == 1) {
+    if (dy == -1)
+      return Way::NW;
+    if (dy == 0)
+      return Way::W;
+    if (dy == 1)
+      return Way::SW;
+  }
+  if (dx == 0) {
+    if (dy == -1)
+      return Way::N;
+    if (dy == 1)
+      return Way::S;
+  }
+  if (dx == -1) {
+    if (dy == -1)
+      return Way::NE;
+    if (dy == 0)
+      return Way::E;
+    if (dy == 1)
+      return Way::SE;
+  }
+  return Way::C;
+}
 
 struct RotationPolicy {};
 
@@ -113,7 +170,7 @@ auto TraceBoundary<Image, RotationPolicy>::move_point(Point pCenter, Way w)
   switch (w) {
   case Way::NW:
     pCenter.first--;
-    pCenter.second++;
+    pCenter.second--;
     break;
   case Way::N:
     pCenter.second--;
@@ -163,7 +220,7 @@ auto TraceBoundary<Image, RotationPolicy>::get(Point p) const -> bool {
 
 template <typename Image, typename RotationPolicy>
 auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
-  Point pp = pStart, pc, pb;
+  Point pp = pStart, pc, pb, ps, pz;
   long long int iter = 0;
 
   /* Phase 1
@@ -200,13 +257,19 @@ auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
     return boundaries;
   } else {
     boundaries.push_back(pp);
+    ps = pp;
+
+#ifdef DEBUG
+    std::cerr << '(' << ps.first << ", " << ps.second << ") # Start"
+              << std::endl;
+#endif
     iter++;
   }
 
   /* Phase 2 */
 
-  pb = pp;
-  pb.second++; // From bottom
+  pz = pp;
+  pz.second++; // From bottom
 
   Way w = Way::S;
   pc = move_point(pp, w);
@@ -216,26 +279,34 @@ auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
       break;
     }
 
-    if (iter >= 2 && pc == pStart) {
+    if (!in_boundary(pc)) {
+      break;
+    }
+
+    if (iter >= 2 && pc == ps) {
       break;
     }
 
     if (get(pc)) {              // If c is black
       boundaries.push_back(pc); // Insert c to B
+#ifdef DEBUG
+      std::cerr << '(' << pc.first << ", " << pc.second << ')' << std::endl;
+#endif
       iter++;
-      pb = pp; // Let b = p
       pp = pc; // Let p = c
       // Backtrack: Move the current pixel c to the pixel from which p was
       // entered.
-      w = Rot::next(w);
-      pc = move_point(pp, w); // Next rotated pixel (from b) in M(p).
+      index_t dx, dy;
+      dx = -pz.first + pp.first;
+      dy = +pz.second - pp.second;
+      w = detail::inv(dx, dy);
     } else {
       // Advance the current pixel c to the next rotated pixel in M(p) and
       // update backtrack.
-      pb = pc; // Let b = c
-      w = Rot::next(w);
-      pc = move_point(pp, w);
+      pz = pc;
     }
+    w = Rot::next(w);
+    pc = move_point(pp, w); // Next rotated pixel (from b) in M(p).
   }
 
   return boundaries;
