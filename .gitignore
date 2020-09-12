@@ -13,3 +13,10 @@ _deps
 /build/
 
 .vscode/
+
+._.DS_Store
+
+*.exe
+*.out
+*.app
+.DS_Store

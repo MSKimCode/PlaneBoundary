@@ -39,6 +39,3 @@ list(FILTER SOURCES EXCLUDE REGEX "CMakeFiles/[^;]+;?")
 
 add_executable(worm-test ${SOURCES})
 target_link_libraries(worm-test gtest_main worm)
-add_test(NAME novice-test COMMAND example)
-# target_compile_features(novice-test PRIVATE cxx_std_20)
-# set_property(TARGET novice-test PROPERTY CXX_STANDARD 20)
