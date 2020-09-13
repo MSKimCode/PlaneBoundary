@@ -120,7 +120,8 @@ template <typename Image, typename RotationPolicy> class TraceBoundary {
 
 public:
   using index_t = typename Image::index_t;
-  using Point = std::pair<size_t, size_t>;
+  // requires singed(index_t);
+  using Point = std::pair<index_t, index_t>;
 
   TraceBoundary() = delete;
   TraceBoundary(const TraceBoundary &) = delete;
@@ -144,7 +145,7 @@ private:
   using Way = detail::Neighborhood;
   using Rot = RotationPolicy;
 
-  bool in_boundary(Point) const;
+  bool in_boundary(const Point &) const;
   static Point move_point(Point, Way);
   bool initial_check() const;
   bool get(Point) const;
@@ -159,9 +160,9 @@ TraceBoundary<Image, RotationPolicy>::TraceBoundary(const Image &i,
       boundaries{}, x_max{i.size().first}, y_max{i.size().second} {}
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::in_boundary(Point p) const -> bool {
-  auto [x, y] = p;
-  return 0 <= x < x_max && 0 <= y < y_max;
+auto TraceBoundary<Image, RotationPolicy>::in_boundary(const Point &p) const
+    -> bool {
+  return 0 <= p.first && p.first < x_max && 0 <= p.second && p.second < y_max;
 }
 
 template <typename Image, typename RotationPolicy>
@@ -271,7 +272,8 @@ auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
   pz = pp;
   pz.second++; // From bottom
 
-  Way w = Way::S;
+  Way w = Way::S, w_s;
+  bool entered = false;
   pc = move_point(pp, w);
 
   while (true) {
@@ -280,12 +282,26 @@ auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
     }
 
     if (!in_boundary(pc)) {
+#ifdef DEBUG
+      std::cerr << "# Met Boundary!" << std::endl;
+#endif
       break;
     }
 
     if (iter >= 2 && pc == ps) {
       break;
     }
+
+    /*
+    if (pc == ps) {
+      if (entered && w_s == w) {
+        break;
+      } else {
+        entered = true;
+        w_s = w;
+      }
+    }
+    */
 
     if (get(pc)) {              // If c is black
       boundaries.push_back(pc); // Insert c to B

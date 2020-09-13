@@ -7,15 +7,8 @@ int main(int argc, char **argv) {
   detect::image img(328, 270);
   img.open("blobs.dat");
   std::cout << "Loaded!" << std::endl;
-  /*
-  for (int y = 0; y < 10; ++y) {
-    for (int x = 0; x < 40; ++x) {
-      std::cout << img(x, y);
-    }
-    std::cout << std::endl;
-  }
-  */
-  auto pp = std::make_pair(43, 212);
+
+  auto pp = std::make_pair(30, 200);
   // auto pp = std::make_pair(108, 254);
 
   std::cout << '(' << pp.first << ", " << pp.second << ')' << std::endl;
