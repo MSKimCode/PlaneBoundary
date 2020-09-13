@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   // auto pp = std::make_pair(108, 254);
 
   std::cout << '(' << pp.first << ", " << pp.second << ')' << std::endl;
-  worm::TraceBoundary<detect::image, worm::Clockwise> trace(img, pp, 1000);
+  worm::Moore<detect::image, worm::Clockwise> trace(img, pp, 1000);
   auto bd = trace.run();
 
   std::ofstream f("bd.out", std::ios::trunc);

@@ -116,21 +116,21 @@ public:
 using detail::Clockwise;
 using detail::CounterClockwise;
 
-template <typename Image, typename RotationPolicy> class TraceBoundary {
+template <typename Image, typename RotationPolicy> class Moore {
 
 public:
   using index_t = typename Image::index_t;
   // requires singed(index_t);
   using Point = std::pair<index_t, index_t>;
 
-  TraceBoundary() = delete;
-  TraceBoundary(const TraceBoundary &) = delete;
-  TraceBoundary(TraceBoundary &&) noexcept = delete;
+  Moore() = delete;
+  Moore(const Moore &) = delete;
+  Moore(Moore &&) noexcept = delete;
 
-  TraceBoundary &operator=(const TraceBoundary &) = delete;
-  TraceBoundary &operator=(TraceBoundary &&) noexcept = delete;
+  Moore &operator=(const Moore &) = delete;
+  Moore &operator=(Moore &&) noexcept = delete;
 
-  TraceBoundary(const Image &, const Point, const long long int);
+  Moore(const Image &, const Point, const long long int);
 
   const std::vector<Point> &run();
 
@@ -152,7 +152,7 @@ private:
 };
 
 template <typename Image, typename RotationPolicy>
-TraceBoundary<Image, RotationPolicy>::TraceBoundary(const Image &i,
+Moore<Image, RotationPolicy>::Moore(const Image &i,
                                                     const Point p,
                                                     const long long int l)
     : image{i}, pStart{p},
@@ -160,13 +160,13 @@ TraceBoundary<Image, RotationPolicy>::TraceBoundary(const Image &i,
       boundaries{}, x_max{i.size().first}, y_max{i.size().second} {}
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::in_boundary(const Point &p) const
+auto Moore<Image, RotationPolicy>::in_boundary(const Point &p) const
     -> bool {
   return 0 <= p.first && p.first < x_max && 0 <= p.second && p.second < y_max;
 }
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::move_point(Point pCenter, Way w)
+auto Moore<Image, RotationPolicy>::move_point(Point pCenter, Way w)
     -> Point {
   switch (w) {
   case Way::NW:
@@ -204,14 +204,14 @@ auto TraceBoundary<Image, RotationPolicy>::move_point(Point pCenter, Way w)
 }
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::initial_check() const -> bool {
+auto Moore<Image, RotationPolicy>::initial_check() const -> bool {
   bool result = false;
   result = in_boundary(pStart) && result;
   return result;
 }
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::get(Point p) const -> bool {
+auto Moore<Image, RotationPolicy>::get(Point p) const -> bool {
   if (in_boundary(p)) {
     return image(p.first, p.second);
   } else {
@@ -220,7 +220,7 @@ auto TraceBoundary<Image, RotationPolicy>::get(Point p) const -> bool {
 }
 
 template <typename Image, typename RotationPolicy>
-auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
+auto Moore<Image, RotationPolicy>::run() -> const std::vector<Point> & {
   Point pp = pStart, pc, pb, ps, pz;
   long long int iter = 0;
 
@@ -229,6 +229,10 @@ auto TraceBoundary<Image, RotationPolicy>::run() -> const std::vector<Point> & {
    * Left to Right
    * Until meet BLACK!
    */
+
+  if (get(pp)) {
+    return boundaries;
+  }
 
   bool found = false;
   while (!found) {
